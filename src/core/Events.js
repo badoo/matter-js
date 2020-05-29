@@ -85,8 +85,7 @@ var Common = require('./Common');
             eventClone;
 
         var events = object.events;
-        
-        if (events && Common.keys(events).length > 0) {
+        if (events && Object.keys(events).length > 0) {
             if (!event)
                 event = {};
 

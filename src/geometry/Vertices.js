@@ -35,26 +35,39 @@ var Common = require('../core/Common');
      * @param {body} body
      */
     Vertices.create = function(points, body) {
-        var vertices = [];
+        var vertices = new Array(points.length);
 
         for (var i = 0; i < points.length; i++) {
-            var point = points[i],
-                vertex = {
-                    x: point.x,
-                    y: point.y,
-                    index: i,
-                    body: body,
-                    isInternal: false
-                };
-
-            vertices.push(vertex);
+            var point = points[i];
+            vertices[i] = Vertices.createVertex(body, i, point.x, point.y);
         }
 
         return vertices;
     };
 
     /**
-     * Parses a string containing ordered x y pairs separated by spaces (and optionally commas), 
+     * Creates a new vertex
+     *
+     * @method create
+     * @param {body} body
+     * @param {i} index of vertex within the body
+     * @param {x} vertex position x
+     * @param {y} vertex position y
+     */
+    Vertices.createVertex = function(body, i, x, y) {
+        return {
+            x: x,
+            y: y,
+            index: i,
+            body: body,
+            isInternal: false,
+            normalImpulse: 0,
+            tangentImpulse: 0
+        };
+    };
+
+    /**
+     * Parses a string containing ordered x y pairs separated by spaces (and optionally commas),
      * into a `Matter.Vertices` object for the given `Matter.Body`.
      * For parsing SVG paths, see `Svg.pathToVertices`.
      * @method fromPath
@@ -203,7 +216,7 @@ var Common = require('../core/Common');
             var vertice = vertices[i],
                 dx = vertice.x - point.x,
                 dy = vertice.y - point.y;
-                
+
             vertice.x = point.x + (dx * cos - dy * sin);
             vertice.y = point.y + (dx * sin + dy * cos);
         }
@@ -219,12 +232,13 @@ var Common = require('../core/Common');
      * @return {boolean} True if the vertices contains point, otherwise false
      */
     Vertices.contains = function(vertices, point) {
-        for (var i = 0; i < vertices.length; i++) {
-            var vertice = vertices[i],
-                nextVertice = vertices[(i + 1) % vertices.length];
+        var nextVertice = vertices[0];
+        for (var i = vertices.length - 1; i >= 0; i--) {
+            var vertice = vertices[i];
             if ((point.x - vertice.x) * (nextVertice.y - vertice.y) + (point.y - vertice.y) * (vertice.x - nextVertice.x) > 0) {
                 return false;
             }
+            nextVertice = vertice;
         }
 
         return true;
@@ -292,13 +306,13 @@ var Common = require('../core/Common');
                 continue;
             }
 
-            var prevNormal = Vector.normalise({ 
-                x: vertex.y - prevVertex.y, 
+            var prevNormal = Vector.normalise({
+                x: vertex.y - prevVertex.y,
                 y: prevVertex.x - vertex.x
             });
 
-            var nextNormal = Vector.normalise({ 
-                x: nextVertex.y - vertex.y, 
+            var nextNormal = Vector.normalise({
+                x: nextVertex.y - vertex.y,
                 y: vertex.x - nextVertex.x
             });
 
@@ -401,7 +415,7 @@ var Common = require('../core/Common');
         // http://geomalgorithms.com/a10-_hull-1.html
 
         var upper = [],
-            lower = [], 
+            lower = [],
             vertex,
             i;
 
@@ -416,7 +430,7 @@ var Common = require('../core/Common');
         for (i = 0; i < vertices.length; i += 1) {
             vertex = vertices[i];
 
-            while (lower.length >= 2 
+            while (lower.length >= 2
                    && Vector.cross3(lower[lower.length - 2], lower[lower.length - 1], vertex) <= 0) {
                 lower.pop();
             }
@@ -428,7 +442,7 @@ var Common = require('../core/Common');
         for (i = vertices.length - 1; i >= 0; i -= 1) {
             vertex = vertices[i];
 
-            while (upper.length >= 2 
+            while (upper.length >= 2
                    && Vector.cross3(upper[upper.length - 2], upper[upper.length - 1], vertex) <= 0) {
                 upper.pop();
             }
