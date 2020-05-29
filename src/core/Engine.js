@@ -70,7 +70,7 @@ var Body = require('../body/Body');
                 element: element,
                 controller: Render
             };
-            
+
             engine.render = Common.extend(renderDefaults, engine.render);
         }
 
@@ -120,7 +120,6 @@ var Body = require('../body/Body');
         var world = engine.world,
             timing = engine.timing,
             broadphase = engine.broadphase,
-            broadphasePairs = [],
             i;
 
         // increment timestamp
@@ -191,7 +190,7 @@ var Body = require('../body/Body');
         // iteratively resolve position between collisions
         Resolver.preSolvePosition(pairs.list);
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list, timing.timeScale);
+            Resolver.solvePosition(pairs.list, allBodies, timing.timeScale);
         }
         Resolver.postSolvePosition(allBodies);
 
@@ -229,7 +228,7 @@ var Body = require('../body/Body');
 
         return engine;
     };
-    
+
     /**
      * Merges two engines by keeping the configuration of `engineA` but replacing the world with the one from `engineB`.
      * @method merge
@@ -238,7 +237,7 @@ var Body = require('../body/Body');
      */
     Engine.merge = function(engineA, engineB) {
         Common.extend(engineA, engineB);
-        
+
         if (engineB.world) {
             engineA.world = engineB.world;
 
@@ -261,7 +260,7 @@ var Body = require('../body/Body');
      */
     Engine.clear = function(engine) {
         var world = engine.world;
-    
+
         Pairs.clear(engine.pairs);
 
         var broadphase = engine.broadphase;
@@ -301,7 +300,7 @@ var Body = require('../body/Body');
         if ((gravity.x === 0 && gravity.y === 0) || gravityScale === 0) {
             return;
         }
-        
+
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
@@ -319,10 +318,10 @@ var Body = require('../body/Body');
      * @method _bodiesUpdate
      * @private
      * @param {body[]} bodies
-     * @param {number} deltaTime 
+     * @param {number} deltaTime
      * The amount of time elapsed between updates
      * @param {number} timeScale
-     * @param {number} correction 
+     * @param {number} correction
      * The Verlet correction factor (deltaTime / lastDeltaTime)
      * @param {bounds} worldBounds
      */
@@ -440,7 +439,7 @@ var Body = require('../body/Body');
      */
 
     /**
-     * An `Object` containing properties regarding the timing systems of the engine. 
+     * An `Object` containing properties regarding the timing systems of the engine.
      *
      * @property timing
      * @type object
@@ -458,8 +457,8 @@ var Body = require('../body/Body');
      */
 
     /**
-     * A `Number` that specifies the current simulation-time in milliseconds starting from `0`. 
-     * It is incremented on every `Engine.update` by the given `delta` argument. 
+     * A `Number` that specifies the current simulation-time in milliseconds starting from `0`.
+     * It is incremented on every `Engine.update` by the given `delta` argument.
      *
      * @property timing.timestamp
      * @type number
